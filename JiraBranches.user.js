@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         JiraBranches
 // @namespace    com.cgd
-// @version      0.1.1
+// @version      0.1.2
 // @description  Switches from localhost to IP
 // @author       CGD
 // @match        https://*.atlassian.net/browse/*
@@ -194,7 +194,7 @@ function displayBranchesAndPr2(el) {
 
 waitElement('#issue-comment-add input[name=id]')
     .then(displayBranchesAndPr)
-    .catch(()=>console.error("Error in selector '#issue-comment-add input[name=id]'", [...arguments]));
+    .catch((err)=>console.error("Error in selector '#issue-comment-add input[name=id]'", err));
 waitElement('iframe[id*="com.codebarrel"]')
     .then(displayBranchesAndPr2)
-    .catch(()=>console.error("Error in selector 'iframe[id*=\"com.codebarrel\"]'", [...arguments]));
+    .catch((err)=>console.error("Error in selector 'iframe[id*=\"com.codebarrel\"]'", err));
