@@ -7,7 +7,6 @@
  * @returns {object} Property found
  */
 function optionalAccess(obj, path, def) {
-    console.log('OPTIONAL', arguments);
     const groups = [...path.matchAll(/\[([^\]]+)\]/gm)]
         .map(x=>x[1]);
     return groups
