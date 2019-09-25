@@ -7,6 +7,7 @@
 // @match        https://*.atlassian.net/browse/*
 // @connect      atlassian.net
 // @require      https://raw.githubusercontent.com/charlesgael/userscripts/master/util/functions/dom/waitElement.js
+// @require      https://raw.githubusercontent.com/charlesgael/userscripts/master/util/functions/dom/createElement.js
 // @require      https://raw.githubusercontent.com/charlesgael/userscripts/master/util/functions/helpers/isNotNull.js
 // @require      https://raw.githubusercontent.com/charlesgael/userscripts/master/util/functions/helpers/optionalAccess.js
 // @require      https://raw.githubusercontent.com/charlesgael/userscripts/master/util/functions/helpers/ajax.js
@@ -33,6 +34,8 @@ const images = {
     OPEN: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAKASURBVDjLxVNLTxNRFP7udDp9TCEtFSzloUBwY4FUF0ZjVDYsTDSw0/gjXBii/gk2GjZudO1G4wONK40CGkQSRKTybqGAfVHa6dy5M/d6WwMhccnCk3yLk3u+L9+55xwihMBRQsERQz2crK+vX3Txyn1SyfXDMnyE24AjwR0Q4qLQw1M82H4vGo1+3OeQ/RZSqdQTV2XnhkKzmqaoYJaJQj4P27LgcQGNdTocRmFzyWiJv2zqil0/EJDkt67C0oAGhtTmJpLpHEwSAPNEwBwCy+bQ7W1EsYlYWxiKdMSjvbPhniu96tra2ohmbAxovILZxCq0E5dh6M1g0jllAqYEZRw7lhRp1ZDdewW9tILAykRPingfk9Ti7BbJJ47viiC645cwNm2gYPAaefhWH4TgGB79JoU4vG6Cu0MNyMx/Bv8+hkzJtlWWW27yRfrQ0dhS+4sq0aAOqHQgOK8JGJbMKZf9/h1asPssyv56sBejqupuinEtEHI5jgNFURCuA5JZB6a0fPvBF1BLClbsmoPT7X5wKVqrbWhFqDMmFFHcKLLiNmzbBmMM7WEFAY2jbDCUJbFsMpQkjgUI4ifVWk21lqaXoBQ2mMJ94adi6wes5AxoMYOw7uBcl4JTEQFVULhhId5GcO2MJtuUEykXQRc+gb1/hLTl/VobY2JmctyfnTvvUwlEqCMPvdGEHrKgevj+wlTrxO8VL1+ebLaSc1gwA2kj9bPlYJGmPrx7bm0lrkbIrhrwewFPPbjbj+pzdSPtUh7YXsRqpiT2gp1T9NfEhcGR1zY5fEzjo3c8ud3SIKV0SJrp1wgCLjiS7/CKaU5LPCOcj918+Gb+n1X+b9f4B22tbKhgZZpBAAAAAElFTkSuQmCC',
     branch: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAIESURBVDjLpVLPS9NxGH7mjw3cZmvGclsFxcwQpFsQCRLBvIZJEC7LkyVdO5gnDx0i2qk/IAipyA5GBYoQkX0rWIaxTYvad9E85IbVcd/P834+HcZWKZtRz/V9n4f3eZ7XZYzB/6Cp0XB8/tzrsSeJxX8SuDg3stzZFj7S6Y0cO//g9Nt6e67NFi4tjLpFJBNuC8e6OrqhjUZ6LQ173f5AJb0zo4+chheQ8phK9pACGoKa8Lq9oMN9dPhw2wuqGLk/ZI53n4A2GtaKhdKP0tHZsblXm/da6nmjkrIjyqONoPS9VJ69sJVcN8Qz0yf7fG6fRxsN0QKfx++JJ/v7tg0xce9UTJRMkjx7KNrTHNoZgmii8HUNS5kloZLbJK9aU6mPWwQSdweHSJnev+uAO9IRgYZB8VsRIkRgRxDUCp/yOaQzGUcow2+uv5upCQzfGWwmud6793Cw3dcOUiFrryBfyM+LEkR2R+NdsRgMXCgW1/Fi0doQSih98700VQJjtAWtQb/XDwqxaq8i/yWfXLj8fODpFWsgZ+eSmWwWoolAMIBWtztISrQWolIEFaGk0rtdyEMpTlR9KsWJXM6GGAG1QJRAKL9aoEMop0KmEE7ZwbPJl7WPS11bdpyyArVA6wpZRP8ZYvxGv6EiqAQkYU2lXL/X1TN+0FSJWjRytz67Gn7i3+In2xhLsvVnPqcAAAAASUVORK5CYII=',
 };
+
+const dom = createElement;
 
 GM_addStyle(`
 
@@ -79,7 +82,10 @@ function type(repo) {
 
 function status(st) {
     if (images[st]) {
-        return `<img src="${images[st]}" width="12" height="12"/>`;
+        const img = dom.img(null, images[st]);
+        img.width=12;
+        img.height=12;
+        return img;
     }
     return `[${st.toUpperCase().substr(0, 2)}]`;
 }
@@ -94,32 +100,38 @@ function repositories(branches) {
 }
 
 function branchDisplay(branch) {
-    return `
-        <div class="float left"><code>${type(branch.repository.name)}&nbsp;</code></div>
-        <div class="float right"><a href="${branch.createPullRequestUrl}&dest=preprod" target="_blank" title="Create Pull-request">
-            <img src="${images.branch}" width="12" height="12"/>
-        </a></div>
-        <div class="branch-name">
-            <a href="${branch.url}" target="_blank">${branch.name}</a>
-        </div>
-    `;
+    const branchImg = dom.img(null, images.branch);
+    branchImg.width = 12;
+    branchImg.height = 12;
+    const createPr = dom.a(null, `${branch.createPullRequestUrl}&dest=preprod`, branchImg);
+    createPr.target = '_blank';
+    const branchLink = dom.a(null, branch.url, branch.name);
+    branchLink.target = '_blank';
+
+    return dom.div(
+        dom.div('float left',
+            dom.code(null, `${type(branch.repository.name)}&nbsp;`)),
+        dom.div('float right',
+            createPr),
+        dom.div('branch-name',
+            branchLink)
+    );
 }
 
 function prDisplay(repositories) {
     return (pr) => {
-        //if (pr.destination.branch !== 'preprod') return null;
-
         const [, repoId, branch] = branch_re.exec(pr.source.url);
 
-        console.log(repositories);
+        let prLink = dom.a(null, pr.url, `${branch} ↗ ${pr.destination.branch}`);
+        prLink.target = '_blank';
 
-        return `
-            <div class="float left"><code>${type(repositories[repoId] || repoId)}&nbsp;</code></div>
-            <div class="float right" title="' + pr.status + '">${status(pr.status)}</div>
-            <div class="branch-name">
-                <a href="${pr.url}" target="_blank">${branch} ↗ ${pr.destination.branch}</a>
-            </div>
-        `;
+        return dom.div(
+            dom.div('float left',
+                dom.code(null, `${type(repositories[repoId] || repoId)}&nbsp;`)),
+            dom.div('float right', status(pr.status)),
+            dom.div('branch-name',
+                prLink)
+        );
     };
 }
 
@@ -168,13 +180,13 @@ function show({branches, pullRequests}, inElement, issueId) {
                 .map(prDisplay(reps))
                 .filter(isNotNull);
 
-            const mainNode = document.createElement('div');
-            mainNode.className = 'jira-branches';
-            mainNode.innerHTML = `
-                <h1>Branches</h1>${branchesInfo.join('')}
-                <h1>Pull-Requests</h1>${prInfo.join('')}
-            `;
-            inElement.prepend(mainNode);
+            inElement.prepend(
+                dom.div('jira-branches',
+                    dom.h1(null, 'Branches'),
+                    branchesInfo,
+                    dom.h1(null, 'Pull-Requests'),
+                    prInfo)
+            );
         });
 }
 
