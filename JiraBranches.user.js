@@ -1,14 +1,17 @@
 // ==UserScript==
 // @name         JiraBranches
 // @namespace    com.cgd
-// @version      0.1.2
-// @description  Switches from localhost to IP
+// @version      0.2
+// @description  Displays additional info on Jira issue viewer regarding BitBucket branches and pull-requests
 // @author       CGD
 // @match        https://*.atlassian.net/browse/*
+// @connect      atlassian.net
 // @require      https://raw.githubusercontent.com/charlesgael/userscripts/master/util/functions/dom/waitElement.js
 // @require      https://raw.githubusercontent.com/charlesgael/userscripts/master/util/functions/helpers/isNotNull.js
 // @require      https://raw.githubusercontent.com/charlesgael/userscripts/master/util/functions/helpers/optionalAccess.js
-// @grant        none
+// @require      https://raw.githubusercontent.com/charlesgael/userscripts/master/util/functions/helpers/ajax.js
+// @grant        GM_addStyle
+// @grant        GM_xmlhttpRequest
 // ==/UserScript==
 
 const conf = {
@@ -31,59 +34,75 @@ const images = {
     branch: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAIESURBVDjLpVLPS9NxGH7mjw3cZmvGclsFxcwQpFsQCRLBvIZJEC7LkyVdO5gnDx0i2qk/IAipyA5GBYoQkX0rWIaxTYvad9E85IbVcd/P834+HcZWKZtRz/V9n4f3eZ7XZYzB/6Cp0XB8/tzrsSeJxX8SuDg3stzZFj7S6Y0cO//g9Nt6e67NFi4tjLpFJBNuC8e6OrqhjUZ6LQ173f5AJb0zo4+chheQ8phK9pACGoKa8Lq9oMN9dPhw2wuqGLk/ZI53n4A2GtaKhdKP0tHZsblXm/da6nmjkrIjyqONoPS9VJ69sJVcN8Qz0yf7fG6fRxsN0QKfx++JJ/v7tg0xce9UTJRMkjx7KNrTHNoZgmii8HUNS5kloZLbJK9aU6mPWwQSdweHSJnev+uAO9IRgYZB8VsRIkRgRxDUCp/yOaQzGUcow2+uv5upCQzfGWwmud6793Cw3dcOUiFrryBfyM+LEkR2R+NdsRgMXCgW1/Fi0doQSih98700VQJjtAWtQb/XDwqxaq8i/yWfXLj8fODpFWsgZ+eSmWwWoolAMIBWtztISrQWolIEFaGk0rtdyEMpTlR9KsWJXM6GGAG1QJRAKL9aoEMop0KmEE7ZwbPJl7WPS11bdpyyArVA6wpZRP8ZYvxGv6EiqAQkYU2lXL/X1TN+0FSJWjRytz67Gn7i3+In2xhLsvVnPqcAAAAASUVORK5CYII=',
 };
 
-const styles = {
-    mainDiv:
-        'margin-top: 10px;' +
-        'padding: 4px 8px;' +
-        'background: linear-gradient(#e5e5e5, #cFcFcF);' +
-        'box-shadow: 1px 2px 20px rgba(255,255,255,.6) inset, 1px 2px 5px 1px rgba(0,0,0,0.5);',
-    floatLeft: 'float: left;',
-    floatRight: 'float: right;',
-    branchName:
-        'white-space: nowrap;' +
-        'overflow: hidden;' +
-        'text-overflow: ellipsis;' +
-        'margin-left: 30px;' +
-        'margin-right: 20px;',
-    h1: 'font-size: 1.2em;',
-};
+GM_addStyle(`
+
+.jira-branches {
+    margin-top: 10px;
+    padding: 4px 8px;
+    background: linear-gradient(#e5e5e5, #cFcFcF);
+    box-shadow: 1px 2px 20px rgba(255,255,255,.6) inset, 1px 2px 5px 1px rgba(0,0,0,0.5);
+}
+
+.jira-branches .float.left {
+    float: left;
+}
+
+.jira-branches .float.right {
+    float: right;
+}
+
+.jira-branches .branch-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-left: 30px;
+    margin-right: 20px;
+}
+
+.jira-branches h1 {
+    font-size: 1.2em;
+}
+
+`);
 
 const branch_re = /bitbucket.org\/[^\/]+\/\{([^\/]+)\}\/branch\/([^\/]+)/;
 
-const $ = window.jQuery;
-
 function type(repo) {
-    return '[' +
+    return `[${
         optionalAccess(conf, `repoNames[${repo}]`, `?${repo}`)
             .substring(0, 10)
             .padEnd(10, ' ')
             .toUpperCase()
-            .replace(/ /g, '&nbsp;') +
-        ']';
+            .replace(/ /g, '&nbsp;')
+    }]`;
 }
 
 function status(st) {
     if (images[st]) {
-        return '<img src="' + images[st] + '" width="12" height="12"/>';
+        return `<img src="${images[st]}" width="12" height="12"/>`;
     }
-    return '[' + st.toUpperCase().substr(0, 2) + ']';
+    return `[${st.toUpperCase().substr(0, 2)}]`;
 }
 
 function repositories(branches) {
     return branches
         .reduce((acc, val) => {
-            const [,repoId] = /bitbucket.org\/\{\}\/\{([^}]*)\}/.exec(val.url);
+            const [, repoId] = /bitbucket.org\/\{\}\/\{([^}]*)\}/.exec(val.url);
             acc[repoId] = val.name;
             return acc;
         }, {});
 }
 
 function branchDisplay(branch) {
-    return '<div style="' + styles.floatLeft + '"><tt>' + type(branch.repository.name) + '&nbsp;</tt></div>' +
-        '<div style="' + styles.floatRight + '"><a href="' + branch.createPullRequestUrl + '&dest=preprod" target="_blank" title="Create Pull-request">' +
-        '<img src="' + images.branch + '" width="12" height="12"/></a></div>' +
-        '<div style="' + styles.branchName + '">' +
-        '<a href="' + branch.url + '" target="_blank">' + branch.name + '</a></div>';
+    return `
+        <div class="float left"><code>${type(branch.repository.name)}&nbsp;</code></div>
+        <div class="float right"><a href="${branch.createPullRequestUrl}&dest=preprod" target="_blank" title="Create Pull-request">
+            <img src="${images.branch}" width="12" height="12"/>
+        </a></div>
+        <div class="branch-name">
+            <a href="${branch.url}" target="_blank">${branch.name}</a>
+        </div>
+    `;
 }
 
 function prDisplay(repositories) {
@@ -94,20 +113,20 @@ function prDisplay(repositories) {
 
         console.log(repositories);
 
-        return '<div style="' + styles.floatLeft + '"><tt>' + type(repositories[repoId] || repoId) + '&nbsp;</tt></div>' +
-            '<div style="' + styles.floatRight + '" title="' + pr.status + '">' + status(pr.status) + '</div>' +
-            '<div style="' + styles.branchName + '">' +
-            '<a href="' + pr.url + '" target="_blank">' + branch + ' ↗ ' + pr.destination.branch + '</a></div>';
+        return `
+            <div class="float left"><code>${type(repositories[repoId] || repoId)}&nbsp;</code></div>
+            <div class="float right" title="' + pr.status + '">${status(pr.status)}</div>
+            <div class="branch-name">
+                <a href="${pr.url}" target="_blank">${branch} ↗ ${pr.destination.branch}</a>
+            </div>
+        `;
     };
 }
 
 function show({branches, pullRequests}, inElement, issueId) {
     console.log('GOT INFO', {branches, pullRequests});
-    $.ajax({
-        url: 'https://izicap.atlassian.net/jsw/graphql',
-        type: 'post',
-        data: JSON.stringify({
-            query: `{
+    ajax.post('https://izicap.atlassian.net/jsw/graphql', JSON.stringify({
+        query: `{
                 developmentInformation(issueId: ${issueId}){
                     details {
                         instanceTypes {
@@ -119,82 +138,77 @@ function show({branches, pullRequests}, inElement, issueId) {
                                     name
                                     url
                                 }
-                                }
                             }
                         }
                     }
-                }`
-        }),
-        dataType: 'json',
-        contentType: 'application/json',
-        complete: function(raw) {
-            console.log('RAW', raw);
-            const {data: {developmentInformation: {details: {instanceTypes}}}} = JSON.parse(raw.responseText);
+                }
+            }`}), 'json',{
+        headers: {
+            'content-type': 'application/json'
+        }})
+        .catch(err=>console.log("Error in ajax request 'https://izicap.atlassian.net/jsw/graphql'", err))
+        .then(function(res) {
+            console.log('RAW', res);
+            const {data: {developmentInformation: {details: {instanceTypes}}}} = res;
             console.log('INFO INSTANCES', instanceTypes);
             const [{repository: bitbucketInfo},] = instanceTypes.filter(it => it.id === 'bitbucket');
             console.log('Bitbucket INFO', bitbucketInfo);
             const reps = repositories(bitbucketInfo);
             console.log('REPOSITORIES', reps);
             const branchesInfo = branches
-                .sort((a,b) => (''+a.repository.name).localeCompare(b.repository.name))
+                .sort((a, b) => ('' + a.repository.name).localeCompare(b.repository.name))
                 .map(branchDisplay)
                 .filter(isNotNull);
             const prInfo = pullRequests
-                .sort((a,b) => {
+                .sort((a, b) => {
                     const [, repoA,] = branch_re.exec(a.source.url);
                     const [, repoB,] = branch_re.exec(b.source.url);
-                    return (''+(reps[repoA] || repoA)).localeCompare(reps[repoB] || repoB)
+                    return ('' + (reps[repoA] || repoA)).localeCompare(reps[repoB] || repoB)
                 })
                 .map(prDisplay(reps))
                 .filter(isNotNull);
 
-            inElement.prepend('<div style="' + styles.mainDiv + '">' +
-                '<h1 style="' + styles.h1 + '">Branches</h1>' + branchesInfo.join('') +
-                '<h1 style="' + styles.h1 + '">Pull-Requests</h1>' + prInfo.join('') +
-                '</div>');
-        }
-    });
+            const mainNode = document.createElement('div');
+            mainNode.className = 'jira-branches';
+            mainNode.innerHTML = `
+                <h1>Branches</h1>${branchesInfo.join('')}
+                <h1>Pull-Requests</h1>${prInfo.join('')}
+            `;
+            inElement.prepend(mainNode);
+        });
 }
 
 function displayBranchesAndPr(el) {
     console.log('_ old version detected');
     const id = el.value;
     console.log('_ id', id);
-    $.get('https://izicap.atlassian.net/rest/dev-status/1.0/issue/detail',
+    ajax.get('https://izicap.atlassian.net/rest/dev-status/1.0/issue/detail',
         {
             applicationType: 'bitbucket',
             dataType: 'pullrequest',
-            issueId: id,
-        },
-        (data, status) => {
-            if (status === 'success') {
-                show(data.detail[0], $('#viewissuesidebar'), id);
-            }
-        },
-    );
+            issueId: id
+        }, 'json')
+        .catch(err=>console.log("Error in ajax request 'https://izicap.atlassian.net/rest/dev-status/1.0/issue/detail'", err))
+        .then((data) => show(data.detail[0], document.querySelector('#viewissuesidebar'), id));
 }
 
 function displayBranchesAndPr2(el) {
     console.log('_ new version detected', el);
     const {options: {productContext: {'issue.id': id}}} = JSON.parse(el.name);
     console.log('_ id', id);
-    $.get('https://izicap.atlassian.net/rest/dev-status/1.0/issue/detail',
+    ajax.get('https://izicap.atlassian.net/rest/dev-status/1.0/issue/detail',
         {
             applicationType: 'bitbucket',
             dataType: 'pullrequest',
             issueId: id,
-        },
-        (data, status) => {
-            if (status === 'success') {
-                show(data.detail[0], $('.iGyYHq').eq(0), id);
-            }
-        },
-    );
+        }, 'json')
+        .catch(err=>console.log("Error in ajax request 'https://izicap.atlassian.net/rest/dev-status/1.0/issue/detail'", err))
+        .then((data) => show(data.detail[0], document.querySelector('.iGyYHq'), id));
 }
 
 waitElement('#issue-comment-add input[name=id]')
-    .then(displayBranchesAndPr)
-    .catch((err)=>console.error("Error in selector '#issue-comment-add input[name=id]'", err));
+    .catch((err) => console.error("Error in selector '#issue-comment-add input[name=id]'", err))
+    .then(displayBranchesAndPr);
 waitElement('iframe[id*="com.codebarrel"]')
-    .then(displayBranchesAndPr2)
-    .catch((err)=>console.error("Error in selector 'iframe[id*=\"com.codebarrel\"]'", err));
+    .catch((err) => console.error("Error in selector 'iframe[id*=\"com.codebarrel\"]'", err))
+    .then(displayBranchesAndPr2);
