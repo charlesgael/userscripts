@@ -17,7 +17,7 @@ const createElement = new Proxy({}, {
 
             return function (clazz, ...children) {
                 if (clazz != null && typeof clazz !== "string") {
-                    children = [clazz].concat(children);
+                    children.unshift(clazz);
                     clazz = null;
                 }
                 if (!children) children = [];
@@ -28,10 +28,12 @@ const createElement = new Proxy({}, {
                 // specificities
                 switch(prop) {
                     case 'a':
-                        el.href = children.shift();
+                        const href = children.shift();
+                        if (href) el.href = href;
                         break;
                     case 'img':
-                        el.src = children.shift();
+                        const url = children.shift();
+                        if (url) el.src = url;
                         break;
                 }
 
