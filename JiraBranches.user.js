@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         JiraBranches
 // @namespace    com.cgd
-// @version      1.0
+// @version      1.0.1
 // @description  Displays additional info on Jira issue viewer regarding BitBucket branches and pull-requests
 // @author       CGD
 // @match        https://*.atlassian.net/browse/*
@@ -106,7 +106,7 @@ function repositories(branches) {
         }, {});
 }
 
-function branchDisplay({createPullRequestUrl, url, name, repository: {repoName}}) {
+function branchDisplay({createPullRequestUrl, url, name, repository: {name: repoName}}) {
     const branchImg = dom.img(null, images.branch);
     branchImg.width = 12;
     branchImg.height = 12;
