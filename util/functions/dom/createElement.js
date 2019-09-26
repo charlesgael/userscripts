@@ -1,7 +1,9 @@
+var $; if (!$)$ = {};
+
 /**
  * Simplify the creation of doms element by calling dom.div('myclass', child1, child2)
  */
-const createElement = new Proxy({}, {
+$.createElement =  new Proxy({}, {
     get(target, prop) {
         if (target[prop]) {
             return target[prop]

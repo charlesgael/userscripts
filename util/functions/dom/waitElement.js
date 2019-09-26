@@ -1,10 +1,12 @@
+var $; if (!$)$ = {};
+
 /**
  * Promise that resolves when element described by selector apprears on page.
  *
  * @param selector document selector to wait for
  * @param timeout Max time to wait in seconds
  */
-function waitElement(selector, timeout) {
+$.waitElement = function waitElement(selector, timeout) {
 
     return new Promise((ok, ko) => {
         if (!selector) {
@@ -29,4 +31,4 @@ function waitElement(selector, timeout) {
 
         check(selector, start, timeout);
     });
-}
+};

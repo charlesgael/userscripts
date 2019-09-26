@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         JiraBranches
 // @namespace    com.cgd
-// @version      0.3
+// @version      1.0
 // @description  Displays additional info on Jira issue viewer regarding BitBucket branches and pull-requests
 // @author       CGD
 // @match        https://*.atlassian.net/browse/*
@@ -19,7 +19,7 @@
 // @grant        GM_registerMenuCommand
 // ==/UserScript==
 
-const dom = createElement;
+const dom = $.createElement;
 
 const images = {
     MERGED: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAKfSURBVDjLpZPrS1NhHMf9O3bOdmwDCWREIYKEUHsVJBI7mg3FvCxL09290jZj2EyLMnJexkgpLbPUanNOberU5taUMnHZUULMvelCtWF0sW/n7MVMEiN64AsPD8/n83uucQDi/id/DBT4Dolypw/qsz0pTMbj/WHpiDgsdSUyUmeiPt2+V7SrIM+bSss8ySGdR4abQQv6lrui6VxsRonrGCS9VEjSQ9E7CtiqdOZ4UuTqnBHO1X7YXl6Daa4yGq7vWO1D40wVDtj4kWQbn94myPGkCDPdSesczE2sCZShwl8CzcwZ6NiUs6n2nYX99T1cnKqA2EKui6+TwphA5k4yqMayopU5mANV3lNQTBdCMVUA9VQh3GuDMHiVcLCS3J4jSLhCGmKCjBEx0xlshjXYhApfMZRP5CyYD+UkG08+xt+4wLVQZA1tzxthm2tEfD3JxARH7QkbD1ZuozaggdZbxK5kAIsf5qGaKMTY2lAU/rH5HW3PLsEwUYy+YCcERmIjJpDcpzb6l7th9KtQ69fi09ePUej9l7cx2DJbD7UrG3r3afQHOyCo+V3QQzE35pvQvnAZukk5zL5qRL59jsKbPzdheXoBZc4saFhBS6AO7V4zqCpiawuptwQG+UAa7Ct3UT0hh9p9EnXT5Vh6t4C22QaUDh6HwnECOmcO7K+6kW49DKqS2DrEZCtfuI+9GrNHg4fMHVSO5kE7nAPVkAxKBxcOzsajpS4Yh4ohUPPWKTUh3PaQEptIOr6BiJjcZXCwktaAGfrRIpwblqOV3YKdhfXOIvBLeREWpnd8ynsaSJoyESFphwTtfjN6X1jRO2+FxWtCWksqBApeiFIR9K6fiTpPiigDoadqCEag5YUFKl6Yrciw0VOlhOivv/Ff8wtn0KzlebrUYwAAAABJRU5ErkJggg==',
@@ -27,6 +27,8 @@ const images = {
     OPEN: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAKASURBVDjLxVNLTxNRFP7udDp9TCEtFSzloUBwY4FUF0ZjVDYsTDSw0/gjXBii/gk2GjZudO1G4wONK40CGkQSRKTybqGAfVHa6dy5M/d6WwMhccnCk3yLk3u+L9+55xwihMBRQsERQz2crK+vX3Txyn1SyfXDMnyE24AjwR0Q4qLQw1M82H4vGo1+3OeQ/RZSqdQTV2XnhkKzmqaoYJaJQj4P27LgcQGNdTocRmFzyWiJv2zqil0/EJDkt67C0oAGhtTmJpLpHEwSAPNEwBwCy+bQ7W1EsYlYWxiKdMSjvbPhniu96tra2ohmbAxovILZxCq0E5dh6M1g0jllAqYEZRw7lhRp1ZDdewW9tILAykRPingfk9Ti7BbJJ47viiC645cwNm2gYPAaefhWH4TgGB79JoU4vG6Cu0MNyMx/Bv8+hkzJtlWWW27yRfrQ0dhS+4sq0aAOqHQgOK8JGJbMKZf9/h1asPssyv56sBejqupuinEtEHI5jgNFURCuA5JZB6a0fPvBF1BLClbsmoPT7X5wKVqrbWhFqDMmFFHcKLLiNmzbBmMM7WEFAY2jbDCUJbFsMpQkjgUI4ifVWk21lqaXoBQ2mMJ94adi6wes5AxoMYOw7uBcl4JTEQFVULhhId5GcO2MJtuUEykXQRc+gb1/hLTl/VobY2JmctyfnTvvUwlEqCMPvdGEHrKgevj+wlTrxO8VL1+ebLaSc1gwA2kj9bPlYJGmPrx7bm0lrkbIrhrwewFPPbjbj+pzdSPtUh7YXsRqpiT2gp1T9NfEhcGR1zY5fEzjo3c8ud3SIKV0SJrp1wgCLjiS7/CKaU5LPCOcj918+Gb+n1X+b9f4B22tbKhgZZpBAAAAAElFTkSuQmCC',
     branch: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAIESURBVDjLpVLPS9NxGH7mjw3cZmvGclsFxcwQpFsQCRLBvIZJEC7LkyVdO5gnDx0i2qk/IAipyA5GBYoQkX0rWIaxTYvad9E85IbVcd/P834+HcZWKZtRz/V9n4f3eZ7XZYzB/6Cp0XB8/tzrsSeJxX8SuDg3stzZFj7S6Y0cO//g9Nt6e67NFi4tjLpFJBNuC8e6OrqhjUZ6LQ173f5AJb0zo4+chheQ8phK9pACGoKa8Lq9oMN9dPhw2wuqGLk/ZI53n4A2GtaKhdKP0tHZsblXm/da6nmjkrIjyqONoPS9VJ69sJVcN8Qz0yf7fG6fRxsN0QKfx++JJ/v7tg0xce9UTJRMkjx7KNrTHNoZgmii8HUNS5kloZLbJK9aU6mPWwQSdweHSJnev+uAO9IRgYZB8VsRIkRgRxDUCp/yOaQzGUcow2+uv5upCQzfGWwmud6793Cw3dcOUiFrryBfyM+LEkR2R+NdsRgMXCgW1/Fi0doQSih98700VQJjtAWtQb/XDwqxaq8i/yWfXLj8fODpFWsgZ+eSmWwWoolAMIBWtztISrQWolIEFaGk0rtdyEMpTlR9KsWJXM6GGAG1QJRAKL9aoEMop0KmEE7ZwbPJl7WPS11bdpyyArVA6wpZRP8ZYvxGv6EiqAQkYU2lXL/X1TN+0FSJWjRytz67Gn7i3+In2xhLsvVnPqcAAAAASUVORK5CYII=',
 };
+
+const branch_re = /bitbucket.org\/[^\/]+\/\{([^\/]+)\}\/branch\/([^\/]+)/;
 
 GM_addStyle(`
 
@@ -59,14 +61,12 @@ GM_addStyle(`
 
 `);
 
-const branch_re = /bitbucket.org\/[^\/]+\/\{([^\/]+)\}\/branch\/([^\/]+)/;
-
 function type(repo) {
     const repoNames = JSON.parse(GM_getValue('repoNames', '{}'));
     console.log('REPO NAMES', repoNames);
     const setRepoName = function() {
         const val = prompt(`New name for repository '${repo}' (max 10 characters)`,
-            optionalAccess(repoNames, `[${repo}]`, `${repo}`)
+            $.optionalAccess(repoNames, `[${repo}]`, `${repo}`)
                 .substring(0, 10));
         if (val) {
             repoNames[repo] = val;
@@ -77,7 +77,7 @@ function type(repo) {
 
     const el = dom.span(null,
         '[',
-        optionalAccess(repoNames, `[${repo}]`, `?${repo}`)
+        $.optionalAccess(repoNames, `[${repo}]`, `?${repo}`)
             .substring(0, 10)
             .padEnd(10, ' ')
             .toUpperCase()
@@ -106,18 +106,18 @@ function repositories(branches) {
         }, {});
 }
 
-function branchDisplay(branch) {
+function branchDisplay({createPullRequestUrl, url, name, repository: {repoName}}) {
     const branchImg = dom.img(null, images.branch);
     branchImg.width = 12;
     branchImg.height = 12;
-    const createPr = dom.a(null, `${branch.createPullRequestUrl}&dest=preprod`, branchImg);
+    const createPr = dom.a(null, `${createPullRequestUrl}&dest=preprod`, branchImg);
     createPr.target = '_blank';
-    const branchLink = dom.a(null, branch.url, branch.name);
+    const branchLink = dom.a(null, url, name);
     branchLink.target = '_blank';
 
     return dom.div(
         dom.div('float left',
-            dom.code(null, type(branch.repository.name), '&nbsp;')),
+            dom.code(null, type(repoName), '&nbsp;')),
         dom.div('float right',
             createPr),
         dom.div('branch-name',
@@ -144,7 +144,7 @@ function prDisplay(repositories) {
 
 function show({branches, pullRequests}, inElement, issueId) {
     console.log('GOT INFO', {branches, pullRequests});
-    ajax.post('https://izicap.atlassian.net/jsw/graphql', JSON.stringify({
+    $.post('https://izicap.atlassian.net/jsw/graphql', JSON.stringify({
         query: `{
                 developmentInformation(issueId: ${issueId}){
                     details {
@@ -177,7 +177,7 @@ function show({branches, pullRequests}, inElement, issueId) {
             const branchesInfo = branches
                 .sort((a, b) => ('' + a.repository.name).localeCompare(b.repository.name))
                 .map(branchDisplay)
-                .filter(isNotNull);
+                .filter($.isNotNull);
             const prInfo = pullRequests
                 .sort((a, b) => {
                     const [, repoA,] = branch_re.exec(a.source.url);
@@ -185,7 +185,7 @@ function show({branches, pullRequests}, inElement, issueId) {
                     return ('' + (reps[repoA] || repoA)).localeCompare(reps[repoB] || repoB)
                 })
                 .map(prDisplay(reps))
-                .filter(isNotNull);
+                .filter($.isNotNull);
 
             inElement.prepend(
                 dom.div('jira-branches',
@@ -201,7 +201,7 @@ function displayBranchesAndPr(el) {
     console.log('_ old version detected');
     const id = el.value;
     console.log('_ id', id);
-    ajax.get('https://izicap.atlassian.net/rest/dev-status/1.0/issue/detail',
+    $.get('https://izicap.atlassian.net/rest/dev-status/1.0/issue/detail',
         {
             applicationType: 'bitbucket',
             dataType: 'pullrequest',
@@ -215,7 +215,7 @@ function displayBranchesAndPr2(el) {
     console.log('_ new version detected', el);
     const {options: {productContext: {'issue.id': id}}} = JSON.parse(el.name);
     console.log('_ id', id);
-    ajax.get('https://izicap.atlassian.net/rest/dev-status/1.0/issue/detail',
+    $.get('https://izicap.atlassian.net/rest/dev-status/1.0/issue/detail',
         {
             applicationType: 'bitbucket',
             dataType: 'pullrequest',
@@ -226,10 +226,10 @@ function displayBranchesAndPr2(el) {
 }
 
 function load() {
-    waitElement('#issue-comment-add input[name=id]')
+    $.waitElement('#issue-comment-add input[name=id]')
         .catch((err) => console.error("Error in selector '#issue-comment-add input[name=id]'", err))
         .then(displayBranchesAndPr);
-    waitElement('iframe[id*="com.codebarrel"]')
+    $.waitElement('iframe[id*="com.codebarrel"]')
         .catch((err) => console.error("Error in selector 'iframe[id*=\"com.codebarrel\"]'", err))
         .then(displayBranchesAndPr2);
 }

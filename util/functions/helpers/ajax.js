@@ -1,11 +1,13 @@
+var $; if (!$)$ = {};
+
 /**
  * Object containing methods to send ajax requests
  *
  * @requires grant: GM_xmlhttpRequest
  */
-const ajax = {};
+$.ajax = {};
 
-ajax.request = function ajaxRequest(conf) {
+$.ajax = function ajaxRequest(conf) {
     return new Promise((ok, ko) => {
         conf.onerror = (err) => ko(err);
         conf.onload = (res) => res.status < 400 ? ok(res) : ko(`${res.status} - ${res.statusText}`);
@@ -13,7 +15,7 @@ ajax.request = function ajaxRequest(conf) {
     })
         .then(res=>res.response);
 };
-ajax.get = function ajaxGet(url, query, responseType, extraConf) {
+$.get = function ajaxGet(url, query, responseType, extraConf) {
     if (typeof responseType === "object"){
         extraConf = responseType;
         responseType = null;
@@ -32,9 +34,9 @@ ajax.get = function ajaxGet(url, query, responseType, extraConf) {
         method: 'GET',
         responseType
     });
-    return ajax.request(conf);
+    return $.ajax(conf);
 };
-ajax.post = function ajaxPost(url, data, responseType, extraConf) {
+$.post = function ajaxPost(url, data, responseType, extraConf) {
     if (typeof responseType === "object"){
         extraConf = responseType;
         responseType = null;
@@ -46,5 +48,5 @@ ajax.post = function ajaxPost(url, data, responseType, extraConf) {
         data,
         responseType
     });
-    return ajax.request(conf);
+    return $.ajax(conf);
 };
