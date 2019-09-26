@@ -1,16 +1,11 @@
 // ==UserScript==
-// @name         JiraBranches
+// @name         JiraBranches-SNAP
 // @namespace    com.cgd
 // @version      1.0.1
 // @description  Displays additional info on Jira issue viewer regarding BitBucket branches and pull-requests
 // @author       CGD
 // @match        https://*.atlassian.net/browse/*
 // @connect      atlassian.net
-// @require      https://raw.githubusercontent.com/charlesgael/userscripts/master/util/functions/dom/selector.js
-// @require      https://raw.githubusercontent.com/charlesgael/userscripts/master/util/functions/dom/createElement.js
-// @require      https://raw.githubusercontent.com/charlesgael/userscripts/master/util/functions/helpers/isNotNull.js
-// @require      https://raw.githubusercontent.com/charlesgael/userscripts/master/util/functions/helpers/optionalAccess.js
-// @require      https://raw.githubusercontent.com/charlesgael/userscripts/master/util/functions/helpers/ajax.js
 // @grant        GM_addStyle
 // @grant        GM_xmlhttpRequest
 // @grant        GM_setValue
@@ -18,8 +13,6 @@
 // @grant        GM_deleteValue
 // @grant        GM_registerMenuCommand
 // ==/UserScript==
-
-const dom = $.createElement;
 
 const images = {
     MERGED: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAKfSURBVDjLpZPrS1NhHMf9O3bOdmwDCWREIYKEUHsVJBI7mg3FvCxL09290jZj2EyLMnJexkgpLbPUanNOberU5taUMnHZUULMvelCtWF0sW/n7MVMEiN64AsPD8/n83uucQDi/id/DBT4Dolypw/qsz0pTMbj/WHpiDgsdSUyUmeiPt2+V7SrIM+bSss8ySGdR4abQQv6lrui6VxsRonrGCS9VEjSQ9E7CtiqdOZ4UuTqnBHO1X7YXl6Daa4yGq7vWO1D40wVDtj4kWQbn94myPGkCDPdSesczE2sCZShwl8CzcwZ6NiUs6n2nYX99T1cnKqA2EKui6+TwphA5k4yqMayopU5mANV3lNQTBdCMVUA9VQh3GuDMHiVcLCS3J4jSLhCGmKCjBEx0xlshjXYhApfMZRP5CyYD+UkG08+xt+4wLVQZA1tzxthm2tEfD3JxARH7QkbD1ZuozaggdZbxK5kAIsf5qGaKMTY2lAU/rH5HW3PLsEwUYy+YCcERmIjJpDcpzb6l7th9KtQ69fi09ePUej9l7cx2DJbD7UrG3r3afQHOyCo+V3QQzE35pvQvnAZukk5zL5qRL59jsKbPzdheXoBZc4saFhBS6AO7V4zqCpiawuptwQG+UAa7Ct3UT0hh9p9EnXT5Vh6t4C22QaUDh6HwnECOmcO7K+6kW49DKqS2DrEZCtfuI+9GrNHg4fMHVSO5kE7nAPVkAxKBxcOzsajpS4Yh4ohUPPWKTUh3PaQEptIOr6BiJjcZXCwktaAGfrRIpwblqOV3YKdhfXOIvBLeREWpnd8ynsaSJoyESFphwTtfjN6X1jRO2+FxWtCWksqBApeiFIR9K6fiTpPiigDoadqCEag5YUFKl6Yrciw0VOlhOivv/Ff8wtn0KzlebrUYwAAAABJRU5ErkJggg==',
@@ -66,7 +59,7 @@ function type(repo) {
     console.log('REPO NAMES', repoNames);
     const setRepoName = function() {
         const val = prompt(`New name for repository '${repo}' (max 10 characters)`,
-            $.optionalAccess(repoNames, `[${repo}]`, `${repo}`)
+            $.util.optionalAccess(repoNames, `[${repo}]`, `${repo}`)
                 .substring(0, 10));
         if (val) {
             repoNames[repo] = val;
@@ -75,9 +68,9 @@ function type(repo) {
         }
     };
 
-    const el = dom.span(null,
+    const el = $.mkdom.span(null,
         '[',
-        $.optionalAccess(repoNames, `[${repo}]`, `?${repo}`)
+        $.util.optionalAccess(repoNames, `[${repo}]`, `?${repo}`)
             .substring(0, 10)
             .padEnd(10, ' ')
             .toUpperCase()
@@ -89,7 +82,7 @@ function type(repo) {
 
 function status(st) {
     if (images[st]) {
-        const img = dom.img(null, images[st]);
+        const img = $.mkdom.img(null, images[st]);
         img.width=12;
         img.height=12;
         return img;
@@ -107,20 +100,20 @@ function repositories(branches) {
 }
 
 function branchDisplay({createPullRequestUrl, url, name, repository: {name: repoName}}) {
-    const branchImg = dom.img(null, images.branch);
+    const branchImg = $.mkdom.img(null, images.branch);
     branchImg.width = 12;
     branchImg.height = 12;
-    const createPr = dom.a(null, `${createPullRequestUrl}&dest=preprod`, branchImg);
+    const createPr = $.mkdom.a(null, `${createPullRequestUrl}&dest=preprod`, branchImg);
     createPr.target = '_blank';
-    const branchLink = dom.a(null, url, name);
+    const branchLink = $.mkdom.a(null, url, name);
     branchLink.target = '_blank';
 
-    return dom.div(
-        dom.div('float left',
-            dom.code(null, type(repoName), '&nbsp;')),
-        dom.div('float right',
+    return $.mkdom.div(
+        $.mkdom.div('float left',
+            $.mkdom.code(null, type(repoName), '&nbsp;')),
+        $.mkdom.div('float right',
             createPr),
-        dom.div('branch-name',
+        $.mkdom.div('branch-name',
             branchLink)
     );
 }
@@ -129,14 +122,14 @@ function prDisplay(repositories) {
     return (pr) => {
         const [, repoId, branch] = branch_re.exec(pr.source.url);
 
-        let prLink = dom.a(null, pr.url, `${branch} ↗ ${pr.destination.branch}`);
+        let prLink = $.mkdom.a(null, pr.url, `${branch} ↗ ${pr.destination.branch}`);
         prLink.target = '_blank';
 
-        return dom.div(
-            dom.div('float left',
-                dom.code(null, type(repositories[repoId] || repoId), '&nbsp;')),
-            dom.div('float right', status(pr.status)),
-            dom.div('branch-name',
+        return $.mkdom.div(
+            $.mkdom.div('float left',
+                $.mkdom.code(null, type(repositories[repoId] || repoId), '&nbsp;')),
+            $.mkdom.div('float right', status(pr.status)),
+            $.mkdom.div('branch-name',
                 prLink)
         );
     };
@@ -177,7 +170,7 @@ function show({branches, pullRequests}, inElement, issueId) {
             const branchesInfo = branches
                 .sort((a, b) => ('' + a.repository.name).localeCompare(b.repository.name))
                 .map(branchDisplay)
-                .filter($.isNotNull);
+                .filter($.util.isNotNull);
             const prInfo = pullRequests
                 .sort((a, b) => {
                     const [, repoA,] = branch_re.exec(a.source.url);
@@ -185,13 +178,13 @@ function show({branches, pullRequests}, inElement, issueId) {
                     return ('' + (reps[repoA] || repoA)).localeCompare(reps[repoB] || repoB)
                 })
                 .map(prDisplay(reps))
-                .filter($.isNotNull);
+                .filter($.util.isNotNull);
 
             inElement.prepend(
-                dom.div('jira-branches',
-                    dom.h1(null, 'Branches'),
+                $.mkdom.div('jira-branches',
+                    $.mkdom.h1(null, 'Branches'),
                     branchesInfo,
-                    dom.h1(null, 'Pull-Requests'),
+                    $.mkdom.h1(null, 'Pull-Requests'),
                     prInfo)
             );
         });
@@ -226,10 +219,10 @@ function displayBranchesAndPr2(el) {
 }
 
 function load() {
-    $.waitElement('#issue-comment-add input[name=id]')
+    $.waitDom('#issue-comment-add input[name=id]')
         .catch((err) => console.error("Error in selector '#issue-comment-add input[name=id]'", err))
         .then(displayBranchesAndPr);
-    $.waitElement('iframe[id*="com.codebarrel"]')
+    $.waitDom('iframe[id*="com.codebarrel"]')
         .catch((err) => console.error("Error in selector 'iframe[id*=\"com.codebarrel\"]'", err))
         .then(displayBranchesAndPr2);
 }

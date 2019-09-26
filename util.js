@@ -137,7 +137,7 @@ module.exports = function optionalAccess(obj, path, def) {
         .reduce((acc, prop) => acc[prop] || def, obj);
 };
 },{}],8:[function(require,module,exports){
-module.exports = new Proxy({
+const props = {
     mkdom: require('./functions/dom/mkdom'),
     waitDom: require('./functions/dom/wait-dom'),
     ajax: require('./functions/net/ajax'),
@@ -147,9 +147,14 @@ module.exports = new Proxy({
         isNotNull: require('./functions/util/is-not-null'),
         optionalAccess: require('./functions/util/optional-access')
     }
-}, {
+};
+
+module.exports = new Proxy(()=>{}, {
     apply(target, thisArg, argumentsList) {
-        return document.querySelector.apply(thisArg, argumentsList);
+        return document.querySelector(...argumentsList);
+    },
+    get(target, p, receiver) {
+        if (props[p]) return props[p];
     }
 });
 
