@@ -5,7 +5,7 @@ module.exports = new Proxy({}, {
         } else {
             const appendNode = function (el, child) {
                 if (typeof child === "string") {
-                    const span = dom.span();
+                    const span = document.createElement('span');
                     span.innerHTML = child;
                     child = span;
                 }
