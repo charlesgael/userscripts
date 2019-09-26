@@ -1,5 +1,15 @@
 var $; if (!$)$ = {};
 
+
+/**
+ * Find an element using a selector
+ */
+$ = new Proxy($, {
+    apply(target, thisArg, argumentsList) {
+        return document.querySelector.apply(thisArg, argumentsList);
+    }
+});
+
 /**
  * Promise that resolves when element described by selector apprears on page.
  *
@@ -17,7 +27,7 @@ $.waitElement = function waitElement(selector, timeout) {
         const start = new Date();
 
         const check = function(selector, start, timeout) {
-            const el = document.querySelector(selector);
+            const el = $(selector);
             if (el) {
                 ok(el);
             }

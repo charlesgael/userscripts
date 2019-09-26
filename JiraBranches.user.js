@@ -6,7 +6,7 @@
 // @author       CGD
 // @match        https://*.atlassian.net/browse/*
 // @connect      atlassian.net
-// @require      https://raw.githubusercontent.com/charlesgael/userscripts/master/util/functions/dom/waitElement.js
+// @require      https://raw.githubusercontent.com/charlesgael/userscripts/master/util/functions/dom/selector.js
 // @require      https://raw.githubusercontent.com/charlesgael/userscripts/master/util/functions/dom/createElement.js
 // @require      https://raw.githubusercontent.com/charlesgael/userscripts/master/util/functions/helpers/isNotNull.js
 // @require      https://raw.githubusercontent.com/charlesgael/userscripts/master/util/functions/helpers/optionalAccess.js

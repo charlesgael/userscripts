@@ -5,8 +5,6 @@ var $; if (!$)$ = {};
  *
  * @requires grant: GM_xmlhttpRequest
  */
-$.ajax = {};
-
 $.ajax = function ajaxRequest(conf) {
     return new Promise((ok, ko) => {
         conf.onerror = (err) => ko(err);

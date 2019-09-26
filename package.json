@@ -1,0 +1,23 @@
+{
+  "name": "userscripts",
+  "version": "1.0.0",
+  "description": "Collection of user scripts to be used by tampermonkey or equivalent and their util",
+  "main": "util.js",
+  "scripts": {
+    "start": "browserify src/util.js --s $ > util.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/charlesgael/userscripts.git"
+  },
+  "author": "cdjedai",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/charlesgael/userscripts/issues"
+  },
+  "homepage": "https://github.com/charlesgael/userscripts#readme",
+  "dependencies": {
+    "browserify": "^16.5.0"
+  }
+}
