@@ -1,11 +1,12 @@
 // ==UserScript==
 // @name         JiraBranches
 // @namespace    com.cgd
-// @version      1.1.0
+// @version      1.1.1
 // @description  Displays additional info on Jira issue viewer regarding BitBucket branches and pull-requests
 // @author       CGD
 // @match        https://*.atlassian.net/browse/*
 // @connect      atlassian.net
+// @require      https://raw.githubusercontent.com/charlesgael/userscripts/master/util.js
 // @grant        GM_addStyle
 // @grant        GM_xmlhttpRequest
 // @grant        GM_setValue
