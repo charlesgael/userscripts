@@ -4,7 +4,7 @@
   "description": "Collection of user scripts to be used by tampermonkey or equivalent and their util",
   "main": "util.js",
   "scripts": {
-    "start": "browserify src/util.js --s $ > util.js",
+    "start": "browserify src/util.js -s _util > util.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         JiraBranches
 // @namespace    com.cgd
-// @version      1.1.2
+// @version      1.2.0
 // @description  Displays additional info on Jira issue viewer regarding BitBucket branches and pull-requests
 // @author       CGD
 // @match        https://*.atlassian.net/browse/*
@@ -14,6 +14,8 @@
 // @grant        GM_deleteValue
 // @grant        GM_registerMenuCommand
 // ==/UserScript==
+
+const ø = _util;
 
 const images = {
     MERGED: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAKfSURBVDjLpZPrS1NhHMf9O3bOdmwDCWREIYKEUHsVJBI7mg3FvCxL09290jZj2EyLMnJexkgpLbPUanNOberU5taUMnHZUULMvelCtWF0sW/n7MVMEiN64AsPD8/n83uucQDi/id/DBT4Dolypw/qsz0pTMbj/WHpiDgsdSUyUmeiPt2+V7SrIM+bSss8ySGdR4abQQv6lrui6VxsRonrGCS9VEjSQ9E7CtiqdOZ4UuTqnBHO1X7YXl6Daa4yGq7vWO1D40wVDtj4kWQbn94myPGkCDPdSesczE2sCZShwl8CzcwZ6NiUs6n2nYX99T1cnKqA2EKui6+TwphA5k4yqMayopU5mANV3lNQTBdCMVUA9VQh3GuDMHiVcLCS3J4jSLhCGmKCjBEx0xlshjXYhApfMZRP5CyYD+UkG08+xt+4wLVQZA1tzxthm2tEfD3JxARH7QkbD1ZuozaggdZbxK5kAIsf5qGaKMTY2lAU/rH5HW3PLsEwUYy+YCcERmIjJpDcpzb6l7th9KtQ69fi09ePUej9l7cx2DJbD7UrG3r3afQHOyCo+V3QQzE35pvQvnAZukk5zL5qRL59jsKbPzdheXoBZc4saFhBS6AO7V4zqCpiawuptwQG+UAa7Ct3UT0hh9p9EnXT5Vh6t4C22QaUDh6HwnECOmcO7K+6kW49DKqS2DrEZCtfuI+9GrNHg4fMHVSO5kE7nAPVkAxKBxcOzsajpS4Yh4ohUPPWKTUh3PaQEptIOr6BiJjcZXCwktaAGfrRIpwblqOV3YKdhfXOIvBLeREWpnd8ynsaSJoyESFphwTtfjN6X1jRO2+FxWtCWksqBApeiFIR9K6fiTpPiigDoadqCEag5YUFKl6Yrciw0VOlhOivv/Ff8wtn0KzlebrUYwAAAABJRU5ErkJggg==',
@@ -60,7 +62,7 @@ function type(repo) {
     console.log('REPO NAMES', repoNames);
     const setRepoName = function() {
         const val = prompt(`New name for repository '${repo}' (max 10 characters)`,
-            $.util.optionalAccess(repoNames, `[${repo}]`, `${repo}`)
+            ø.util.optionalAccess(repoNames, `[${repo}]`, `${repo}`)
                 .substring(0, 10));
         if (val) {
             repoNames[repo] = val;
@@ -69,9 +71,9 @@ function type(repo) {
         }
     };
 
-    const el = $.mkdom.span(null,
+    const el = ø.mkdom.span(null,
         '[',
-        $.util.optionalAccess(repoNames, `[${repo}]`, `?${repo}`)
+        ø.util.optionalAccess(repoNames, `[${repo}]`, `?${repo}`)
             .substring(0, 10)
             .padEnd(10, ' ')
             .toUpperCase()
@@ -83,7 +85,7 @@ function type(repo) {
 
 function status(st) {
     if (images[st]) {
-        const img = $.mkdom.img(null, images[st]);
+        const img = ø.mkdom.img(null, images[st]);
         img.width=12;
         img.height=12;
         return img;
@@ -101,20 +103,20 @@ function repositories(branches) {
 }
 
 function branchDisplay({createPullRequestUrl, url, name, repository: {name: repoName}}) {
-    const branchImg = $.mkdom.img(null, images.branch);
+    const branchImg = ø.mkdom.img(null, images.branch);
     branchImg.width = 12;
     branchImg.height = 12;
-    const createPr = $.mkdom.a(null, `${createPullRequestUrl}&dest=preprod`, branchImg);
+    const createPr = ø.mkdom.a(null, `${createPullRequestUrl}&dest=preprod`, branchImg);
     createPr.target = '_blank';
-    const branchLink = $.mkdom.a(null, url, name);
+    const branchLink = ø.mkdom.a(null, url, name);
     branchLink.target = '_blank';
 
-    return $.mkdom.div(
-        $.mkdom.div('float left',
-            $.mkdom.code(null, type(repoName), '&nbsp;')),
-        $.mkdom.div('float right',
+    return ø.mkdom.div(
+        ø.mkdom.div('float left',
+            ø.mkdom.code(null, type(repoName), '&nbsp;')),
+        ø.mkdom.div('float right',
             createPr),
-        $.mkdom.div('branch-name',
+        ø.mkdom.div('branch-name',
             branchLink)
     );
 }
@@ -123,14 +125,14 @@ function prDisplay(repositories) {
     return (pr) => {
         const [, repoId, branch] = branch_re.exec(pr.source.url);
 
-        let prLink = $.mkdom.a(null, pr.url, `${branch} ↗ ${pr.destination.branch}`);
+        let prLink = ø.mkdom.a(null, pr.url, `${branch} ↗ ${pr.destination.branch}`);
         prLink.target = '_blank';
 
-        return $.mkdom.div(
-            $.mkdom.div('float left',
-                $.mkdom.code(null, type(repositories[repoId] || repoId), '&nbsp;')),
-            $.mkdom.div('float right', status(pr.status)),
-            $.mkdom.div('branch-name',
+        return ø.mkdom.div(
+            ø.mkdom.div('float left',
+                ø.mkdom.code(null, type(repositories[repoId] || repoId), '&nbsp;')),
+            ø.mkdom.div('float right', status(pr.status)),
+            ø.mkdom.div('branch-name',
                 prLink)
         );
     };
@@ -138,7 +140,7 @@ function prDisplay(repositories) {
 
 function show({branches, pullRequests}, inElement, issueId) {
     console.log('GOT INFO', {branches, pullRequests});
-    $.post('https://izicap.atlassian.net/jsw/graphql', JSON.stringify({
+    ø.post('https://izicap.atlassian.net/jsw/graphql', JSON.stringify({
         query: `{
                 developmentInformation(issueId: ${issueId}){
                     details {
@@ -171,7 +173,7 @@ function show({branches, pullRequests}, inElement, issueId) {
             const branchesInfo = branches
                 .sort((a, b) => ('' + a.repository.name).localeCompare(b.repository.name))
                 .map(branchDisplay)
-                .filter($.util.isNotNull);
+                .filter(ø.util.isNotNull);
             const prInfo = pullRequests
                 .sort((a, b) => {
                     const [, repoA,] = branch_re.exec(a.source.url);
@@ -179,13 +181,13 @@ function show({branches, pullRequests}, inElement, issueId) {
                     return ('' + (reps[repoA] || repoA)).localeCompare(reps[repoB] || repoB)
                 })
                 .map(prDisplay(reps))
-                .filter($.util.isNotNull);
+                .filter(ø.util.isNotNull);
 
             inElement.prepend(
-                $.mkdom.div('jira-branches',
-                    $.mkdom.h1(null, 'Branches'),
+                ø.mkdom.div('jira-branches',
+                    ø.mkdom.h1(null, 'Branches'),
                     branchesInfo,
-                    $.mkdom.h1(null, 'Pull-Requests'),
+                    ø.mkdom.h1(null, 'Pull-Requests'),
                     prInfo)
             );
         });
@@ -195,7 +197,7 @@ function displayBranchesAndPr(el) {
     console.log('_ old version detected');
     const id = el.value;
     console.log('_ id', id);
-    $.get('https://izicap.atlassian.net/rest/dev-status/1.0/issue/detail',
+    ø.get('https://izicap.atlassian.net/rest/dev-status/1.0/issue/detail',
         {
             applicationType: 'bitbucket',
             dataType: 'pullrequest',
@@ -209,7 +211,7 @@ function displayBranchesAndPr2(el) {
     console.log('_ new version detected', el);
     const {options: {productContext: {'issue.id': id}}} = JSON.parse(el.name);
     console.log('_ id', id);
-    $.get('https://izicap.atlassian.net/rest/dev-status/1.0/issue/detail',
+    ø.get('https://izicap.atlassian.net/rest/dev-status/1.0/issue/detail',
         {
             applicationType: 'bitbucket',
             dataType: 'pullrequest',
@@ -220,10 +222,10 @@ function displayBranchesAndPr2(el) {
 }
 
 function load() {
-    $.waitDom('#issue-comment-add input[name=id]')
+    ø.waitDom('#issue-comment-add input[name=id]')
         .catch((err) => console.error("Error in selector '#issue-comment-add input[name=id]'", err))
         .then(displayBranchesAndPr);
-    $.waitDom('iframe[id*="com.codebarrel"]')
+    ø.waitDom('iframe[id*="com.codebarrel"]')
         .catch((err) => console.error("Error in selector 'iframe[id*=\"com.codebarrel\"]'", err))
         .then(displayBranchesAndPr2);
 }
