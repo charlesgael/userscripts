@@ -9,7 +9,7 @@ module.exports = function waitElement(selector, timeout) {
         const start = new Date();
 
         const check = function(selector, start, timeout) {
-            const el = $(selector);
+            const el = document.querySelector(selector);
             if (el) {
                 ok(el);
             }

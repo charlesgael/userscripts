@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         JiraBranches
 // @namespace    com.cgd
-// @version      1.2.0
+// @version      1.2.1
 // @description  Displays additional info on Jira issue viewer regarding BitBucket branches and pull-requests
 // @author       CGD
 // @match        https://*.atlassian.net/browse/*
@@ -173,7 +173,7 @@ function show({branches, pullRequests}, inElement, issueId) {
             const branchesInfo = branches
                 .sort((a, b) => ('' + a.repository.name).localeCompare(b.repository.name))
                 .map(branchDisplay)
-                .filter(ø.util.isNotNull);
+                .filter(ø.filter.isNotNull);
             const prInfo = pullRequests
                 .sort((a, b) => {
                     const [, repoA,] = branch_re.exec(a.source.url);
@@ -181,7 +181,7 @@ function show({branches, pullRequests}, inElement, issueId) {
                     return ('' + (reps[repoA] || repoA)).localeCompare(reps[repoB] || repoB)
                 })
                 .map(prDisplay(reps))
-                .filter(ø.util.isNotNull);
+                .filter(ø.filter.isNotNull);
 
             inElement.prepend(
                 ø.mkdom.div('jira-branches',

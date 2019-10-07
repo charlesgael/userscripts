@@ -5,8 +5,10 @@ const props = {
     get: require('./functions/net/get'),
     post: require('./functions/net/post'),
     util: {
-        isNotNull: require('./functions/util/is-not-null'),
         optionalAccess: require('./functions/util/optional-access')
+    },
+    filter: {
+        isNotNull: require('./functions/filter/is-not-null')
     }
 };
 

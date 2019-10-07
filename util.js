@@ -55,7 +55,7 @@ module.exports = function waitElement(selector, timeout) {
         const start = new Date();
 
         const check = function(selector, start, timeout) {
-            const el = $(selector);
+            const el = document.querySelector(selector);
             if (el) {
                 ok(el);
             }
@@ -70,7 +70,12 @@ module.exports = function waitElement(selector, timeout) {
         check(selector, start, timeout);
     });
 };
+
 },{}],3:[function(require,module,exports){
+module.exports = function isNotNull(obj) {
+    return obj != null;
+};
+},{}],4:[function(require,module,exports){
 module.exports = function ajaxRequest(conf) {
     return new Promise((ok, ko) => {
         conf.onerror = (err) => ko(err);
@@ -79,7 +84,7 @@ module.exports = function ajaxRequest(conf) {
     })
         .then(res=>res.response);
 };
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 ajax = require('./ajax');
 
 module.exports = function ajaxGet(url, query, responseType, extraConf) {
@@ -103,7 +108,7 @@ module.exports = function ajaxGet(url, query, responseType, extraConf) {
     });
     return ajax(conf);
 };
-},{"./ajax":3}],5:[function(require,module,exports){
+},{"./ajax":4}],6:[function(require,module,exports){
 ajax = require('./ajax');
 
 module.exports = function ajaxPost(url, data, responseType, extraConf) {
@@ -120,11 +125,7 @@ module.exports = function ajaxPost(url, data, responseType, extraConf) {
     });
     return ajax(conf);
 };
-},{"./ajax":3}],6:[function(require,module,exports){
-module.exports = function isNotNull(obj) {
-    return obj != null;
-};
-},{}],7:[function(require,module,exports){
+},{"./ajax":4}],7:[function(require,module,exports){
 module.exports = function optionalAccess(obj, path, def) {
     const groups = [...path.matchAll(/\[([^\]]+)\]/gm)]
         .map(x=>x[1]);
@@ -144,8 +145,10 @@ const props = {
     get: require('./functions/net/get'),
     post: require('./functions/net/post'),
     util: {
-        isNotNull: require('./functions/util/is-not-null'),
         optionalAccess: require('./functions/util/optional-access')
+    },
+    filter: {
+        isNotNull: require('./functions/filter/is-not-null')
     }
 };
 
@@ -159,5 +162,5 @@ module.exports = new Proxy(()=>{}, {
 });
 
 
-},{"./functions/dom/mkdom":1,"./functions/dom/wait-dom":2,"./functions/net/ajax":3,"./functions/net/get":4,"./functions/net/post":5,"./functions/util/is-not-null":6,"./functions/util/optional-access":7}]},{},[8])(8)
+},{"./functions/dom/mkdom":1,"./functions/dom/wait-dom":2,"./functions/filter/is-not-null":3,"./functions/net/ajax":4,"./functions/net/get":5,"./functions/net/post":6,"./functions/util/optional-access":7}]},{},[8])(8)
 });
